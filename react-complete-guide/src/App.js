@@ -1,64 +1,119 @@
 import React, { useState } from 'react';
+import styled from 'styled-components';
+
 import './App.css';
 import Person from './Person/Person';
 
+const StyledButton = styled.button`
+  background-color: ${props => props.alt ? 'red' : 'green'};
+  color: white;
+  font: inherit;
+  border: 1px solid blue;
+  padding: 8px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${props => props.alt ? 'salmon' : 'lightgreen'};
+    color: black;
+  };
+`;
+ 
 const App = props => {
   const [ personsState, setPersonsState ] = useState({
     persons: [
-      { name: "Max", age: 28 },
-      { name: "Manu", age: 29 },
-      { name: "Stephanie", age: 26 }
+      { id:'argw', name: "Max", age: 28 },
+      { id:'ahdf', name: "Manu", age: 29 },
+      { id:'erhq3', name: "Stephanie", age: 26 }
     ],
-    otherState: 'some other value'
+    otherState: 'some other value',
+    showPersons: false
   });
 
   const [otherState, setOtherState] = useState('some other value');
 
-  const switchNameHandler = (newName) => {
-    // DON'T DO THIS: this.state.persons[0].name = "Maximilian";
+  const deletePersonHandler = personIndex => {
+    const persons = [...personsState.persons];
+    persons.splice(personIndex, 1);
+    setPersonsState({
+      persons: persons,
+      showPersons: false
+    });
+  }
+
+  const nameChangedHandler = (event, id) => {
+    const personIndex = personsState.persons.findIndex(p => {
+      return p.id === id;
+    });
+
+    const person = {
+      ...personsState.persons[personIndex]
+    }
+
+    person.name = event.target.value;
+
+    const persons = [...personsState.persons];
+    persons[personIndex] = person;
+
+    setPersonsState({
+      persons: persons
+    });
+  }
+
+
+  const togglePersonsHandler = () => {
+    const doesShow = personsState.showPersons;
     setPersonsState({
       persons: [
         { name: "Maximilian", age: 28 },
         { name: "Manu", age: 29 },
         { name: "Stephanie", age: 27 }
-      ]
+      ],
+      showPersons: !doesShow
     });
   }
 
-  const nameChangedHandler = (event) => {
-    setPersonsState({
-      persons: [
-        { name: "Max", age: 28 },
-        { name: event.target.value, age: 29 },
-        { name: "Stephanie", age: 26 }
-      ]
-    });
+  const style = {};
+
+  let persons = null;
+
+  if (personsState.showPersons) {
+    persons = (
+      <div>
+        {personsState.persons.map((person, index) => {
+          return <Person
+                    click={() => deletePersonHandler(index)}
+                    name={person.name}
+                    age={person.age}
+                    key={person.id}
+                    changed={(event) => nameChangedHandler(event, person.id)} />
+        })}
+      </div>
+    );
+
+    // style.backgroundColor = "red";
+    // style[':hover'] = {
+    //   backgroundColor: 'salmon',
+    //   color: 'black'
+    // }
   }
 
-  const style = {
-    backgroundColor: 'white',
-    font: "inherit",
-    border: "1px solid blue",
-    padding: "8px",
-    cursor: "pointer"
-  };
+  const classes = [];
+
+  if (personsState.persons.length <= 2) {
+    classes.push('red'); 
+  }
+  if (personsState.persons.length <= 1) {
+    classes.push('bold');
+  }
 
   return (
     <div className="App">
       <h1>Hi, I'm a React App</h1>
-      <p>This is really working!</p>
-      <button 
-        style={style}
-        onClick={() => switchNameHandler('Maximilian!!')}>Switch Name</button>
-      <Person
-        name={personsState.persons[0].name}
-        age={personsState.persons[0].age} />
-      <Person
-        name={personsState.persons[1].name}
-        age={personsState.persons[1].age}
-        click={switchNameHandler.bind(this, 'Max')}
-        changed={nameChangedHandler} >My Hobbies: Racing</Person>
-      <Person name={personsState.persons[2].name} age={personsState.persons[2].age} />
+      <p className={classes.join(" ")}>This is really working!</p>
+      <button class="button" onClick={togglePersonsHandler}>
+        Switch Name
+      </button>
+      {persons}
     </div>
   );
   // return React.createElement('div', {className: 'App'}, React.createElement('h1', null, "Does this work now?"));
